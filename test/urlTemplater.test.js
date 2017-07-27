@@ -1,9 +1,9 @@
 const expect = require('chai').expect
-const UrlTemplate = require('../dist/bundle.rollup')
+const UrlTemplater = require('../dist/url-templater')
 
 describe('basic', function () {
     it('string params and query resolve', function () {
-        let url = new UrlTemplate('http://localhost:8080/api/name/:name').resolve({
+        let url = new UrlTemplater('http://localhost:8080/api/name/:name').resolve({
             params: {
                 name: 'zsk'
             },

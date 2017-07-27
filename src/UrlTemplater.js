@@ -1,17 +1,24 @@
 import Util from './Util'
+// import nodejs module by rollup-plugin-node-builtins
+import Url from 'url'
 
 export default class UrlTemplate {
 
     /**
-     * 创建一个模板URL对象
+     * create a url-template object
      * 
      * @param {String} url 模板URL
      * @param {Object} options 配置项
      * @memberof UrlTemplate
      */
     constructor(url, options) {
-        this.url = url
-        this.options = Object.assign({}, UrlTemplate.DEFAULT_OPTIONS, options)
+        if (Util.isString(url)) {
+            this._url = url
+            this._obj = Url.parse(url)
+            this.options = Object.assign({}, UrlTemplate.DEFAULT_OPTIONS, options)
+        } else {
+            throw new Error('parameter url must be a string!')
+        }
     }
 
     /**
@@ -85,7 +92,7 @@ export default class UrlTemplate {
                 arrCombineStart: this.options.arrCombineStart,
                 arrCombineEnd: this.options.arrCombineEnd,
             },
-            _queryStart = this.url.endsWith('?') ? '' : '?',
+            _queryStart = this._url.endsWith('?') ? '' : '?',
             _queryList = [],
             _andFlag = '&'
 
@@ -113,7 +120,7 @@ export default class UrlTemplate {
     getResolvedParamsPart(paramsObj) {
 
         let _paramsRule = this.options.paramsRule
-        let _url = this.url
+        let _url = this._url
 
         _url = _url.replace(_paramsRule, function (substring, key) {
             if (!isNaN(key)) {

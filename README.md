@@ -1,2 +1,2 @@
 # url-template
-a template engine for web url
+use a url template to resolve your different data

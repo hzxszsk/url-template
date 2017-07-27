@@ -1,27 +1,30 @@
 {
-  "name": "url-template",
+  "name": "url-templater",
   "version": "1.0.0",
   "description": "use a url template, and resolve your different data",
-  "main": "./src/index.js",
+  "main": "./index.js",
   "scripts": {
     "build": "rollup -c",
-    "test": "mocha --compilers js:babel-core/register test"
+    "test": "mocha --compilers js:babel-core/register test",
+    "prepublish": "npm run build"
   },
+  "homepage": "https://github.com/hzxszsk/url-templater",
   "repository": {
     "type": "git",
-    "url": "git://github.com/hzxszsk/url-template.git"
+    "url": "git://github.com/hzxszsk/url-templater.git"
   },
   "author": {
     "name": "KainStar",
     "email": "hzxszsk@gmail.com"
   },
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "babel-preset-latest": "^6.24.1",
     "chai": "^4.1.0",
     "mocha": "^3.4.2",
     "rollup": "^0.45.2",
-    "rollup-plugin-babel": "^2.7.1"
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-node-builtins": "^2.1.2"
   },
   "dependencies": {}
 }

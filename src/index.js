@@ -1,3 +1,3 @@
-import UrlTemplate from './UrlTemplate'
+import UrlTemplater from './UrlTemplater'
 
-export default UrlTemplate;
+export default UrlTemplater;
