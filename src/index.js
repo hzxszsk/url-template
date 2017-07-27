@@ -1,11 +1,3 @@
-import Util from './Util'
-import WebUrlTemplate from './WebUrlTemplate'
-import MockWebUrlGroup from './MockWebUrlGroup'
-import MockWebUrlContainer from './MockWebUrlContainer'
+import UrlTemplate from './UrlTemplate'
 
-export default {
-    Util,
-    WebUrlTemplate,
-    MockWebUrlGroup,
-    MockWebUrlContainer
-}
+export default UrlTemplate;

@@ -1,27 +1,33 @@
 import Util from './Util'
 
-export default class WebUrlTemplate {
+export default class UrlTemplate {
 
     /**
      * 创建一个模板URL对象
      * 
      * @param {String} url 模板URL
      * @param {Object} options 配置项
-     * @memberof WebUrlTemplate
+     * @memberof UrlTemplate
      */
     constructor(url, options) {
         this.url = url
-        this.options = Object.assign({}, WebUrlTemplate.DEFAULT_OPTIONS, options)
+        this.options = Object.assign({}, UrlTemplate.DEFAULT_OPTIONS, options)
     }
 
     /**
      * 解析URL参数和请求参数，返回解析完的结果URL
      * 
-     * @param {object} resolveObj 
+     * @param {Object} {
+     *         params = {}, Url参数
+     *         query = {}   Query参数
+     *     } 
      * @returns {String}
-     * @memberof WebUrlTemplate
+     * @memberof UrlTemplate
      */
-    resolve({params = {}, query = {}}) {
+    resolve({
+        params = {}, 
+        query = {}
+    }) {
         return this.getResolvedParamsPart(params) + this.getResolvedQueryPart(query)
     }
 
@@ -30,7 +36,7 @@ export default class WebUrlTemplate {
      * 
      * @param {Object} queryObj 
      * @returns {String}
-     * @memberof WebUrlTemplate
+     * @memberof UrlTemplate
      */
     getResolvedQueryPart(queryObj) {
 
@@ -42,12 +48,8 @@ export default class WebUrlTemplate {
          * @returns 
          */
         const _transformToEntity = function (key, value) {
-            if (Util.isString(value) || Util.isNumber(value)) {
-                // 字符串或数字，直接拼接
-                value = encodeURI(value)
-                return `${key}=${value}`
+            if (Util.isArray(value)) {
 
-            } else if (Util.isArray(value)) {
                 // 数组，按数组规则解析，用[]连接
                 let _entityList = []
                 for (let i = 0; i < value.length; i++) {
@@ -56,6 +58,7 @@ export default class WebUrlTemplate {
                 return _entityList
 
             } else if (Util.isObject(value)) {
+
                 // 对象，按对象规则解析，用.连接
                 let _entityList = []
                 for (let _inner_key in value) {
@@ -64,14 +67,17 @@ export default class WebUrlTemplate {
                 return _entityList
 
             } else if (Util.isFunction(value)) {
+
                 // 函数，按函数结果类型解析
                 return _transformToEntity(key, value())
 
             } else {
-                // 无法解析的对象，直接返回空数组
-                return []
 
-            }
+                // 其他类型，直接转化字符串，进行编码拼接
+                value = encodeURI(value.toString())
+                return `${key}=${value}`
+
+            } 
         }
 
         let _transformRule = {
@@ -102,7 +108,7 @@ export default class WebUrlTemplate {
      * 
      * @param {Object} paramsObj 
      * @returns {String}
-     * @memberof WebUrlTemplate
+     * @memberof UrlTemplate
      */
     getResolvedParamsPart(paramsObj) {
 
@@ -110,14 +116,17 @@ export default class WebUrlTemplate {
         let _url = this.url
 
         _url = _url.replace(_paramsRule, function (substring, key) {
+            if (!isNaN(key)) {
+                return substring
+            }
             return paramsObj[key] || ''
         })
 
-        return _url;
+        return _url
     }
 }
 
-WebUrlTemplate.DEFAULT_OPTIONS = {
+UrlTemplate.DEFAULT_OPTIONS = {
     objCombine: '.',
     arrCombineStart: '[',
     arrCombineEnd: ']',
