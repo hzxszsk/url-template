@@ -1,6 +1,7 @@
+'use strict'
 import Util from './Util'
 // import nodejs module by rollup-plugin-node-builtins
-import Url from 'url'
+import Url from './Url'
 
 export default class UrlTemplate {
 

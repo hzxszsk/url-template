@@ -1,27 +1,28 @@
+'use strict'
 const Util = {
     /**
      * 判断是否为字符串
      * 
      * @param {any} str 
-     * @returns {String}
+     * @returns {Boolean}
      */
     isString (str) {
-        return Object.prototype.toString.call(str) === '[object String]'
+        return typeof str === 'string'
     },
     /**
      * 判断是否为数字
      * 
      * @param {any} num 
-     * @returns {Number}
+     * @returns {Boolean}
      */
     isNumber (num) {
-        return Object.prototype.toString.call(num) === '[object Number]'
+        return typeof num === 'number'
     },
     /**
      * 判断是否为数组
      * 
      * @param {any} arr 
-     * @returns {Array}
+     * @returns {Boolean}
      */
     isArray (arr) {
         return Array.isArray(arr)
@@ -30,7 +31,7 @@ const Util = {
      * 判断是否为对象
      * 
      * @param {any} obj 
-     * @returns {Object}
+     * @returns {Boolean}
      */
     isObject (obj) {
         return Object.prototype.toString.call(obj) === '[object Object]'
@@ -39,10 +40,19 @@ const Util = {
      * 判断是否为函数
      * 
      * @param {any} fun 
-     * @returns {Function}
+     * @returns {Boolean}
      */
     isFunction (fun) {
-        return Object.prototype.toString.call(fun) === '[object Function]'
+        return typeof fun === 'function'
+    },
+    /**
+     * 判断是否为null
+     * 
+     * @param {any} arg 
+     * @returns {Boolean}
+     */
+    isNull (arg) {
+        return arg === null
     }
 }
 
