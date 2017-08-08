@@ -1,4 +1,6 @@
-const expect = require('chai').expect
+'use strict'
+
+const assert = require('assert')
 const { UrlTemplater, Url } = require('../dist/url-templater')
 
 describe('UrlTemplater test', function () {
@@ -11,14 +13,14 @@ describe('UrlTemplater test', function () {
                 json: 'true'
             }
         })
-        expect(url).to.be.equal('http://localhost:8080/api/name/zsk?json=true')
+        assert.equal(url, 'http://localhost:8080/api/name/zsk?json=true')
     })
 })
 
 describe('Url static methods test', function () {
     it('parse a url string', function () {
         let url_obj = Url.parse('http://localhost:8080/api/id/:id?type=json#a')
-        expect(url_obj).to.be.equals({
+        assert.deepEqual(url_obj, {
             protocol: 'http',
             host: 'localhost:8080',
             hash: '#a',
@@ -34,6 +36,6 @@ describe('Url static methods test', function () {
             path: '/api/id/:id',
             query: 'type=json' 
         })
-        expect(url).to.be.equals('http://localhost:8080/api/id/:id?type=json#a')
+        assert.equal(url, 'http://localhost:8080/api/id/:id?type=json#a')
     })
 })

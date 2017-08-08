@@ -49,7 +49,7 @@ export default class Url {
             let path_end_index = url.indexOf('?')
             if (path_end_index !== -1) {
                 url_obj.path = url.slice(0, path_end_index)
-                url_obj.query = url.slice(path_end_index+1)
+                url_obj.query = url.slice(path_end_index + 1)
             } else {
                 url_obj.path = url
             }
@@ -68,14 +68,14 @@ export default class Url {
      */
     static format(url_obj) {
         if (Util.isObject(url_obj)) {
-            let url = ''
-            url += url_obj.protocol ? url_obj.protocol + '://' : ''
-            url += url_obj.host ? url_obj.host : ''
-            url += url_obj.port ? ':' + url_obj.port : ''
-            url += url_obj.path ? url_obj.path : ''
-            url += url_obj.query ? '?' + url_obj.query : ''
-            url += url_obj.hash ? url_obj.hash : ''
-            return url
+            let _urlPartArray = []
+            _urlPartArray.push(url_obj.protocol ? url_obj.protocol + '://' : '')
+            _urlPartArray.push(url_obj.host ? url_obj.host : '')
+            _urlPartArray.push(url_obj.port ? ':' + url_obj.port : '')
+            _urlPartArray.push(url_obj.path ? url_obj.path : '')
+            _urlPartArray.push(url_obj.query ? '?' + url_obj.query : '')
+            _urlPartArray.push(url_obj.hash ? url_obj.hash : '')
+            return _urlPartArray.join('')
         } else {
             throw new Error('parameter url_obj must be a object')
         }

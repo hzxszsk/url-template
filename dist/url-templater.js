@@ -1,7 +1,7 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
-	(global['url-templater'] = factory());
+	(global.UrlTemplater = factory());
 }(this, (function () { 'use strict';
 
 var Util = {
@@ -169,14 +169,14 @@ var Url = function () {
         key: 'format',
         value: function format(url_obj) {
             if (Util.isObject(url_obj)) {
-                var url = '';
-                url += url_obj.protocol ? url_obj.protocol + '://' : '';
-                url += url_obj.host ? url_obj.host : '';
-                url += url_obj.port ? ':' + url_obj.port : '';
-                url += url_obj.path ? url_obj.path : '';
-                url += url_obj.query ? '?' + url_obj.query : '';
-                url += url_obj.hash ? url_obj.hash : '';
-                return url;
+                var _urlPartArray = [];
+                _urlPartArray.push(url_obj.protocol ? url_obj.protocol + '://' : '');
+                _urlPartArray.push(url_obj.host ? url_obj.host : '');
+                _urlPartArray.push(url_obj.port ? ':' + url_obj.port : '');
+                _urlPartArray.push(url_obj.path ? url_obj.path : '');
+                _urlPartArray.push(url_obj.query ? '?' + url_obj.query : '');
+                _urlPartArray.push(url_obj.hash ? url_obj.hash : '');
+                return _urlPartArray.join('');
             } else {
                 throw new Error('parameter url_obj must be a object');
             }
@@ -186,7 +186,7 @@ var Url = function () {
 }();
 
 // import nodejs module by rollup-plugin-node-builtins
-var UrlTemplate = function () {
+var UrlTemplater = function () {
 
     /**
      * create a url-template object
@@ -195,13 +195,13 @@ var UrlTemplate = function () {
      * @param {Object} options 配置项
      * @memberof UrlTemplate
      */
-    function UrlTemplate(url, options) {
-        classCallCheck(this, UrlTemplate);
+    function UrlTemplater(url, options) {
+        classCallCheck(this, UrlTemplater);
 
         if (Util.isString(url)) {
-            this._url = url;
-            this._obj = Url.parse(url);
-            this.options = Object.assign({}, UrlTemplate.DEFAULT_OPTIONS, options);
+            this._templater = url;
+            this._templaterObj = Url.parse(url);
+            this.options = Object.assign({}, UrlTemplater.DEFAULT_OPTIONS, options);
         } else {
             throw new Error('parameter url must be a string!');
         }
@@ -219,7 +219,7 @@ var UrlTemplate = function () {
      */
 
 
-    createClass(UrlTemplate, [{
+    createClass(UrlTemplater, [{
         key: 'resolve',
         value: function resolve(_ref) {
             var _ref$params = _ref.params,
@@ -283,7 +283,7 @@ var UrlTemplate = function () {
                 arrCombineStart: this.options.arrCombineStart,
                 arrCombineEnd: this.options.arrCombineEnd
             },
-                _queryStart = this._url.endsWith('?') ? '' : '?',
+                _queryStart = this._templater.endsWith('?') ? '' : '?',
                 _queryList = [],
                 _andFlag = '&';
 
@@ -313,30 +313,30 @@ var UrlTemplate = function () {
         value: function getResolvedParamsPart(paramsObj) {
 
             var _paramsRule = this.options.paramsRule;
-            var _url = this._url;
+            var _urlObj = Object.assign({}, this._templaterObj);
 
-            _url = _url.replace(_paramsRule, function (substring, key) {
-                if (!isNaN(key)) {
-                    return substring;
-                }
+            // replace url path parameters
+            _urlObj.path = _urlObj.path.replace(_paramsRule, function (substring, key) {
                 return paramsObj[key] || '';
             });
 
-            return _url;
+            return Url.format(_urlObj);
         }
     }]);
-    return UrlTemplate;
+    return UrlTemplater;
 }();
 
-UrlTemplate.DEFAULT_OPTIONS = {
+UrlTemplater.DEFAULT_OPTIONS = {
     objCombine: '.',
     arrCombineStart: '[',
     arrCombineEnd: ']',
     paramsRule: /:(\w+)/g
 };
 
+UrlTemplater.version = '1.0.0';
+
 var index = {
-    UrlTemplater: UrlTemplate,
+    UrlTemplater: UrlTemplater,
     Url: Url
 };
 

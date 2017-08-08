@@ -2,10 +2,11 @@
   "name": "url-templater",
   "version": "1.0.0",
   "description": "use a url template, and resolve your different data",
-  "main": "./index.js",
+  "main": "index.js",
   "scripts": {
-    "build": "rollup -c",
-    "build:prod": "SET NODE_ENV=production&&rollup -c",
+    "dev": "rollup -c --environment ENV:development",
+    "build": "rollup -c --environment ENV:production",
+    "pretest": "npm run dev",
     "test": "mocha test",
     "prepublish": "npm run build"
   },
@@ -22,11 +23,12 @@
   "devDependencies": {
     "babel-plugin-external-helpers": "^6.22.0",
     "babel-preset-latest": "^6.24.1",
-    "chai": "^4.1.0",
     "eslint": "^4.3.0",
     "mocha": "^3.4.2",
+    "power-assert": "^1.4.4",
     "rollup": "^0.45.2",
     "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-replace": "^1.1.1",
     "rollup-plugin-uglify": "^2.0.1"
   },
   "dependencies": {}

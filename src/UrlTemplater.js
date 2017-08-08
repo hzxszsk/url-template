@@ -3,7 +3,7 @@ import Util from './Util'
 // import nodejs module by rollup-plugin-node-builtins
 import Url from './Url'
 
-export default class UrlTemplate {
+export default class UrlTemplater {
 
     /**
      * create a url-template object
@@ -14,9 +14,9 @@ export default class UrlTemplate {
      */
     constructor(url, options) {
         if (Util.isString(url)) {
-            this._url = url
-            this._obj = Url.parse(url)
-            this.options = Object.assign({}, UrlTemplate.DEFAULT_OPTIONS, options)
+            this._templater = url
+            this._templaterObj = Url.parse(url)
+            this.options = Object.assign({}, UrlTemplater.DEFAULT_OPTIONS, options)
         } else {
             throw new Error('parameter url must be a string!')
         }
@@ -93,7 +93,7 @@ export default class UrlTemplate {
                 arrCombineStart: this.options.arrCombineStart,
                 arrCombineEnd: this.options.arrCombineEnd,
             },
-            _queryStart = this._url.endsWith('?') ? '' : '?',
+            _queryStart = this._templater.endsWith('?') ? '' : '?',
             _queryList = [],
             _andFlag = '&'
 
@@ -121,22 +121,22 @@ export default class UrlTemplate {
     getResolvedParamsPart(paramsObj) {
 
         let _paramsRule = this.options.paramsRule
-        let _url = this._url
+        let _urlObj = Object.assign({}, this._templaterObj)
 
-        _url = _url.replace(_paramsRule, function (substring, key) {
-            if (!isNaN(key)) {
-                return substring
-            }
+        // replace url path parameters
+        _urlObj.path = _urlObj.path.replace(_paramsRule, function (substring, key) {
             return paramsObj[key] || ''
         })
 
-        return _url
+        return Url.format(_urlObj)
     }
 }
 
-UrlTemplate.DEFAULT_OPTIONS = {
+UrlTemplater.DEFAULT_OPTIONS = {
     objCombine: '.',
     arrCombineStart: '[',
     arrCombineEnd: ']',
     paramsRule: /:(\w+)/g
 }
+
+UrlTemplater.version = '{{version}}'
