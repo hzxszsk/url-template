@@ -6,6 +6,7 @@ import Util from './Util'
  * @class Url
  */
 export default class Url {
+    
     /**
      * transform a url string to a url object
      * 
@@ -16,66 +17,67 @@ export default class Url {
      */
     static parse(url) {
         if (Util.isString(url)) {
-            let url_obj = {
+            let urlObj = {
                 protocol: null,
                 host: null,
                 path: null,
                 query: null,
                 hash: null
             }
-            const regExp_protocol = /^(\w+):\/\//
+            const protocolRegExp = /^(\w+):\/\//
             // parse url's protocol part
-            let protocol = url.match(regExp_protocol)
+            let protocol = url.match(protocolRegExp)
             if (protocol) {
-                url_obj.protocol = protocol[1]
+                urlObj.protocol = protocol[1]
                 // remove protocol part
                 url = url.slice(protocol[0].length)
             }
             // parse url's host part
             if (url.split('/')[0].length > 0) {
                 let host = url.split('/')[0]
-                url_obj.host = host
+                urlObj.host = host
                 // remove host part
                 url = url.slice(host.length)
             }
             // parse url's hash part (this parse order can make parse path easier)
-            let hash_index = url.indexOf('#')
-            if (hash_index !== -1) {
-                url_obj.hash = url.slice(hash_index)
+            let hashIndex = url.indexOf('#')
+            if (hashIndex !== -1) {
+                urlObj.hash = url.slice(hashIndex)
                 // remove hash part
-                url = url.slice(0, hash_index)
+                url = url.slice(0, hashIndex)
             }
             // parse url's path part
-            let path_end_index = url.indexOf('?')
-            if (path_end_index !== -1) {
-                url_obj.path = url.slice(0, path_end_index)
-                url_obj.query = url.slice(path_end_index + 1)
+            let queryIndex = url.indexOf('?')
+            if (queryIndex !== -1) {
+                urlObj.path = url.slice(0, queryIndex)
+                urlObj.query = url.slice(queryIndex + 1)
             } else {
-                url_obj.path = url
+                urlObj.path = url
             }
-            return url_obj
+            return urlObj
         } else {
             throw new Error('parameter url must be a string')
         }
     }
+
     /**
      * transform a url object to a url string
      * 
      * @static
-     * @param {Object} url_obj 
+     * @param {Object} urlObj 
      * @return {String}
      * @memberof Url
      */
-    static format(url_obj) {
-        if (Util.isObject(url_obj)) {
-            let _urlPartArray = []
-            _urlPartArray.push(url_obj.protocol ? url_obj.protocol + '://' : '')
-            _urlPartArray.push(url_obj.host ? url_obj.host : '')
-            _urlPartArray.push(url_obj.port ? ':' + url_obj.port : '')
-            _urlPartArray.push(url_obj.path ? url_obj.path : '')
-            _urlPartArray.push(url_obj.query ? '?' + url_obj.query : '')
-            _urlPartArray.push(url_obj.hash ? url_obj.hash : '')
-            return _urlPartArray.join('')
+    static format(urlObj) {
+        if (Util.isObject(urlObj)) {
+            let urlPartArray = []
+            urlPartArray.push(urlObj.protocol ? urlObj.protocol + '://' : '')
+            urlPartArray.push(urlObj.host ? urlObj.host : '')
+            urlPartArray.push(urlObj.port ? ':' + urlObj.port : '')
+            urlPartArray.push(urlObj.path ? urlObj.path : '')
+            urlPartArray.push(urlObj.query ? '?' + urlObj.query : '')
+            urlPartArray.push(urlObj.hash ? urlObj.hash : '')
+            return urlPartArray.join('')
         } else {
             throw new Error('parameter url_obj must be a object')
         }

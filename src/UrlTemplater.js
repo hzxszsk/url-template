@@ -1,6 +1,5 @@
 'use strict'
 import Util from './Util'
-// import nodejs module by rollup-plugin-node-builtins
 import Url from './Url'
 
 export default class UrlTemplater {
@@ -8,26 +7,28 @@ export default class UrlTemplater {
     /**
      * create a url-template object
      * 
-     * @param {String} url 模板URL
-     * @param {Object} options 配置项
+     * @param {String} url      url Template
+     * @param {Object} options  constructor's option object, has attrs like UrlTemplater.DEFAULT_OPTIONS
      * @memberof UrlTemplate
      */
     constructor(url, options) {
         if (Util.isString(url)) {
-            this._templater = url
-            this._templaterObj = Url.parse(url)
             this.options = Object.assign({}, UrlTemplater.DEFAULT_OPTIONS, options)
+            // set default UrlParser
+            this.UrlParser = this.options.UrlParser || Url
+            this.template = url
+            this.templateObj = this.UrlParser.parse(url)
         } else {
             throw new Error('parameter url must be a string!')
         }
     }
 
     /**
-     * 解析URL参数和请求参数，返回解析完的结果URL
+     * resolve url parameters and query parameters, and return a url result string
      * 
      * @param {Object} {
-     *         params = {}, Url参数
-     *         query = {}   Query参数
+     *         params = {}  url parameters
+     *         query = {}   query parameters
      *     } 
      * @returns {String}
      * @memberof UrlTemplate
@@ -36,99 +37,117 @@ export default class UrlTemplater {
         params = {}, 
         query = {}
     }) {
-        return this.getResolvedParamsPart(params) + this.getResolvedQueryPart(query)
+        return this.getParamsPart(params) + this.getQueryPart(query)
     }
 
     /**
-     * 解析查询参数部分
+     * resolve query parameters
      * 
      * @param {Object} queryObj 
      * @returns {String}
      * @memberof UrlTemplate
      */
-    getResolvedQueryPart(queryObj) {
+    getQueryPart(queryObj) {
 
         /**
-         * 将键-值对转化成key=value的数组
+         * add a new elem into an array
+         * 
+         * @param {Array} array 
+         * @param {*} elem 
+         */
+        const addArrayElem = function (array, elem) {
+            if (!Util.isArray(array)) {
+                throw new Error('parameter array must be an Array Object')
+            }
+            if (Util.isArray(elem)) {
+                array = array.concat(elem)
+            } else {
+                array.push(elem)
+            }
+            return array
+        }
+
+        /**
+         * transform all key-value entity to an array, and the array's value is string look like key=value
          * 
          * @param {String} key 
-         * @param {String|Number|Array|Object} value 
-         * @returns 
+         * @param {String|Number|Array|Object|Function} value 
+         * @returns {String|Array}
          */
-        const _transformToEntity = function (key, value) {
+        const transformToEntity = function (key, value) {
             if (Util.isArray(value)) {
 
-                // 数组，按数组规则解析，用[]连接
-                let _entityList = []
+                // value is an array, combine keys with []
+                let entityList = []
                 for (let i = 0; i < value.length; i++) {
-                    _entityList.concat(_transformToEntity(`${key}${_transformRule.arrCombineStart}${i}${_transformRule.arrCombineEnd}`, value[i]))
+                    entityList = addArrayElem(entityList, transformToEntity(`${key}${transformRule.arrCombineStart}${i}${transformRule.arrCombineEnd}`, value[i]))
                 }
-                return _entityList
+                return entityList
 
             } else if (Util.isObject(value)) {
 
-                // 对象，按对象规则解析，用.连接
-                let _entityList = []
-                for (let _inner_key in value) {
-                    _entityList.concat(_transformToEntity(`${key}${_transformRule.objCombine}${_inner_key}`, value[_inner_key]))
+                // value is a object, combine keys with '.'
+                let entityList = []
+                for (let nextKey in value) {
+                    entityList = addArrayElem(entityList, transformToEntity(`${key}${transformRule.objCombine}${nextKey}`, value[nextKey]))
                 }
-                return _entityList
+                return entityList
 
             } else if (Util.isFunction(value)) {
 
-                // 函数，按函数结果类型解析
-                return _transformToEntity(key, value())
+                // value is a function, use value's return result as key's value
+                return transformToEntity(key, value())
 
             } else {
 
-                // 其他类型，直接转化字符串，进行编码拼接
+                // value is other type, use value's toString function's return result as key's value
                 value = encodeURI(value.toString())
                 return `${key}=${value}`
 
             } 
         }
 
-        let _transformRule = {
+        let transformRule = {
                 objCombine: this.options.objCombine,
                 arrCombineStart: this.options.arrCombineStart,
                 arrCombineEnd: this.options.arrCombineEnd,
             },
-            _queryStart = this._templater.endsWith('?') ? '' : '?',
-            _queryList = [],
-            _andFlag = '&'
+            queryStart = this.template.endsWith('?') ? '' : '?',
+            queryList = [],
+            andSymbol = '&'
 
         for (let key in queryObj) {
             let value = queryObj[key]
-            let _transformResult = _transformToEntity(key, value)
-            if (Util.isArray(_transformResult)) {
-                _queryList.concat(_transformResult)
-            } else if (Util.isString) {
-                _queryList.push(_transformResult)
-            }
+            let transformResult = transformToEntity(key, value)
+            queryList = addArrayElem(queryList, transformResult)
         }
 
-        return _queryStart + _queryList.join(_andFlag)
+        let queryResult = queryList.join(andSymbol)
+        return queryResult.length > 0 ? queryStart + queryResult : queryResult
 
     }
 
     /**
-     * 解析URL路径参数部分
+     * resolve url parameters
      * 
      * @param {Object} paramsObj 
      * @returns {String}
      * @memberof UrlTemplate
      */
-    getResolvedParamsPart(paramsObj) {
+    getParamsPart(paramsObj) {
 
-        let _paramsRule = this.options.paramsRule
-        let _urlObj = Object.assign({}, this._templaterObj)
+        let paramsRule = this.options.paramsRule
+        let urlObj = Object.assign({}, this.templateObj)
 
-        // replace url path parameters
-        _urlObj.path = _urlObj.path.replace(_paramsRule, function (substring, key) {
+        // replace url parameters in path string, the no-value parameter will be replace with empty string
+        urlObj.path = urlObj.path.replace(paramsRule, (substring, key) => {
+            if (Util.isFunction(paramsObj[key])) {
+                return paramsObj[key]() || ''
+            }
             return paramsObj[key] || ''
         })
 
-        return Url.format(_urlObj)
+        return this.UrlParser.format(urlObj)
     }
 }
 
@@ -136,7 +155,8 @@ UrlTemplater.DEFAULT_OPTIONS = {
     objCombine: '.',
     arrCombineStart: '[',
     arrCombineEnd: ']',
-    paramsRule: /:(\w+)/g
+    paramsRule: /:(\w+)/g,
+    UrlParser: null
 }
 
 UrlTemplater.version = '{{version}}'

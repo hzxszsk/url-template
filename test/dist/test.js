@@ -1,8 +1,8 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global.UrlTemplater = factory());
-}(this, (function () { 'use strict';
+'use strict';
+
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var assert = _interopDefault(require('power-assert'));
 
 var Util = {
     /**
@@ -355,13 +355,122 @@ UrlTemplater.DEFAULT_OPTIONS = {
     UrlParser: null
 };
 
-UrlTemplater.version = '1.0.0';
+UrlTemplater.version = '{{version}}';
 
-var index = {
-    UrlTemplater: UrlTemplater,
-    Url: Url
-};
+describe('Url static methods test', function () {
+    it('parse method test', function () {
+        var url_obj = Url.parse('http://localhost:8080/api/id/:id?type=json#a');
+        assert.deepEqual(url_obj, {
+            protocol: 'http',
+            host: 'localhost:8080',
+            hash: '#a',
+            path: '/api/id/:id',
+            query: 'type=json'
+        });
+    });
 
-return index;
+    it('format method test', function () {
+        var url = Url.format({
+            protocol: 'http',
+            host: 'localhost:8080',
+            hash: '#a',
+            path: '/api/id/:id',
+            query: 'type=json'
+        });
+        assert.equal(url, 'http://localhost:8080/api/id/:id?type=json#a');
+    });
+});
 
-})));
+describe('UrlTemplater test', function () {
+
+    it('resolve simple params', function () {
+        var url = new UrlTemplater('http://localhost:8080/api/name/:name').resolve({
+            params: {
+                name: 'url-templater'
+            }
+        });
+        assert.equal(url, 'http://localhost:8080/api/name/url-templater');
+    });
+
+    it('resolve function params', function () {
+        var url = new UrlTemplater('http://localhost:8080/api/time/:time').resolve({
+            params: {
+                time: function time() {
+                    return new Date();
+                }
+            }
+        });
+        var urlPattern = /^http\/\/localhost:8080\/api\/time\/\d+$/;
+        assert(urlPattern.compile(url));
+    });
+
+    it('resolve simple query', function () {
+        var url = new UrlTemplater('http://localhost:8080/api/query').resolve({
+            query: {
+                json: 'true'
+            }
+        });
+        assert.equal(url, 'http://localhost:8080/api/query?json=true');
+    });
+
+    it('resolve array query', function () {
+        var url = new UrlTemplater('http://localhost:8080/api/query').resolve({
+            query: {
+                array: ['a', 'b', 'c']
+            }
+        });
+        assert.equal(url, 'http://localhost:8080/api/query?array[0]=a&array[1]=b&array[2]=c');
+    });
+
+    it('resolve object query', function () {
+        var url = new UrlTemplater('http://localhost:8080/api/query').resolve({
+            query: {
+                obj: {
+                    attr1: 'value1',
+                    attr2: 'value2',
+                    attr3: 'value3'
+                }
+            }
+        });
+        assert.equal(url, 'http://localhost:8080/api/query?obj.attr1=value1&obj.attr2=value2&obj.attr3=value3');
+    });
+
+    it('resolve function query', function () {
+        var url = new UrlTemplater('http://localhost:8080/api/query').resolve({
+            query: {
+                time: function time() {
+                    return new Date();
+                }
+            }
+        });
+        var urlPattern = /^http\/\/localhost:8080\/api\/query\?time=\d+$/;
+        assert(urlPattern.compile(url));
+    });
+
+    it('resolve complex query and params', function () {
+        var url = new UrlTemplater('http://localhost:8080/api/id/:id/type/:type/query').resolve({
+            params: {
+                id: 123456,
+                type: 'json'
+            },
+            query: {
+                projectInfo: {
+                    name: 'url-templater',
+                    teamMember: ['programmer', 'tester'],
+                    birthday: function birthday() {
+                        var birthday = new Date(2017, 7, 10);
+                        return birthday.getFullYear() + '-' + (birthday.getMonth() + 1) + '-' + birthday.getDate();
+                    },
+                    modules: {
+                        Url: 'parse and format effect',
+                        UrlTemplater: 'url template class'
+                    }
+                }
+            }
+        });
+
+        var resultUrl = 'http://localhost:8080/api/id/123456/type/json/query?projectInfo.name=url-templater&projectInfo.teamMember[0]=programmer&projectInfo.teamMember[1]=tester&projectInfo.birthday=2017-8-10&projectInfo.modules.Url=parse%20and%20format%20effect&projectInfo.modules.UrlTemplater=url%20template%20class';
+
+        assert.equal(url, resultUrl);
+    });
+});

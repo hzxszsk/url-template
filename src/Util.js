@@ -3,47 +3,47 @@ const Util = {
     /**
      * 判断是否为字符串
      * 
-     * @param {any} str 
+     * @param {any} arg 
      * @returns {Boolean}
      */
-    isString (str) {
-        return typeof str === 'string'
+    isString (arg) {
+        return typeof arg === 'string'
     },
     /**
      * 判断是否为数字
      * 
-     * @param {any} num 
+     * @param {any} arg 
      * @returns {Boolean}
      */
-    isNumber (num) {
-        return typeof num === 'number'
+    isNumber (arg) {
+        return typeof arg === 'number'
     },
     /**
      * 判断是否为数组
      * 
-     * @param {any} arr 
+     * @param {any} arg 
      * @returns {Boolean}
      */
-    isArray (arr) {
-        return Array.isArray(arr)
+    isArray (arg) {
+        return Array.isArray(arg)
     },
     /**
      * 判断是否为对象
      * 
-     * @param {any} obj 
+     * @param {any} arg 
      * @returns {Boolean}
      */
-    isObject (obj) {
-        return Object.prototype.toString.call(obj) === '[object Object]'
+    isObject (arg) {
+        return Object.prototype.toString.call(arg) === '[object Object]'
     },
     /**
      * 判断是否为函数
      * 
-     * @param {any} fun 
+     * @param {any} arg 
      * @returns {Boolean}
      */
-    isFunction (fun) {
-        return typeof fun === 'function'
+    isFunction (arg) {
+        return typeof arg === 'function'
     },
     /**
      * 判断是否为null
