@@ -1,12 +1,10 @@
 {
     "env": {
-        "browser": true,
+        "node": true,
         "commonjs": true,
         "es6": true,
-        "node": true,
         "mocha": true
     },
-    "extends": "eslint:recommended",
     "parserOptions": {
         "sourceType": "module",
         "ecmaVersion": 6,
@@ -14,6 +12,7 @@
             "jsx": false
         }
     },
+    "extends": "eslint:recommended",
     "rules": {
         "indent": ["error", 4],
         "linebreak-style": ["error", "windows"],
@@ -21,6 +20,11 @@
         "semi": ["error", "never"],
         "no-var": "error",
         "no-new-object": "error",
-        "no-array-constructor": "error"
+        "no-array-constructor": "error",
+        "no-empty": "error",
+        "no-empty-function": "error",
+        "no-inner-declarations": "error",
+        "no-func-assign": "error",
+        "eqeqeq": "error"
     }
 }

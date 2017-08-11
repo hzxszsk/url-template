@@ -18,42 +18,50 @@ export default class Url {
     static parse(url) {
         if (Util.isString(url)) {
             let urlObj = {
-                protocol: null,
-                host: null,
-                path: null,
-                query: null,
-                hash: null
+                protocol: '',
+                host: '',
+                path: '',
+                query: '',
+                hash: ''
             }
-            const protocolRegExp = /^(\w+):\/\//
+
             // parse url's protocol part
+            const protocolRegExp = /^(\w+):\/\//
             let protocol = url.match(protocolRegExp)
             if (protocol) {
                 urlObj.protocol = protocol[1]
                 // remove protocol part
                 url = url.slice(protocol[0].length)
             }
+
             // parse url's host part
-            if (url.split('/')[0].length > 0) {
-                let host = url.split('/')[0]
-                urlObj.host = host
+            const hostRegExp = /^[a-zA-Z0-9][-a-zA-Z0-9_]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9_]{0,62})*(:\d{0,5})?/
+            let host = url.match(hostRegExp)
+            if (host) {
+                urlObj.host = host[0]
                 // remove host part
-                url = url.slice(host.length)
+                url = url.slice(urlObj.host.length)
             }
+
             // parse url's hash part (this parse order can make parse path easier)
-            let hashIndex = url.indexOf('#')
-            if (hashIndex !== -1) {
-                urlObj.hash = url.slice(hashIndex)
+            const hashRegExp = /#.*$/
+            let hash = url.match(hashRegExp)
+            if (hash) {
+                urlObj.hash = hash[0]
                 // remove hash part
-                url = url.slice(0, hashIndex)
+                url = url.slice(0, url.length - urlObj.hash.length)
             }
+
             // parse url's path part
-            let queryIndex = url.indexOf('?')
-            if (queryIndex !== -1) {
-                urlObj.path = url.slice(0, queryIndex)
-                urlObj.query = url.slice(queryIndex + 1)
+            const queryRegExp = /\?(.*)$/
+            let query = url.match(queryRegExp)
+            if (query) {
+                urlObj.query = query[1]
+                urlObj.path = url.slice(0, query.index)
             } else {
                 urlObj.path = url
             }
+            
             return urlObj
         } else {
             throw new Error('parameter url must be a string')
@@ -71,12 +79,11 @@ export default class Url {
     static format(urlObj) {
         if (Util.isObject(urlObj)) {
             let urlPartArray = []
-            urlPartArray.push(urlObj.protocol ? urlObj.protocol + '://' : '')
-            urlPartArray.push(urlObj.host ? urlObj.host : '')
-            urlPartArray.push(urlObj.port ? ':' + urlObj.port : '')
-            urlPartArray.push(urlObj.path ? urlObj.path : '')
-            urlPartArray.push(urlObj.query ? '?' + urlObj.query : '')
-            urlPartArray.push(urlObj.hash ? urlObj.hash : '')
+            urlPartArray.push(Util.isNotEmptyString(urlObj.protocol) ? urlObj.protocol + '://' : '')
+            urlPartArray.push(Util.isNotEmptyString(urlObj.host) ? urlObj.host : '')
+            urlPartArray.push(Util.isNotEmptyString(urlObj.path) ? urlObj.path : '')
+            urlPartArray.push(Util.isNotEmptyString(urlObj.query) ? '?' + urlObj.query : '')
+            urlPartArray.push(Util.isNotEmptyString(urlObj.hash) ? urlObj.hash : '')
             return urlPartArray.join('')
         } else {
             throw new Error('parameter url_obj must be a object')

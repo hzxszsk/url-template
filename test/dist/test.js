@@ -4,9 +4,13 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var assert = _interopDefault(require('power-assert'));
 
+/**
+ * provide some function helpers
+ */
+
 var Util = {
     /**
-     * 判断是否为字符串
+     * judge is a string
      * 
      * @param {any} arg 
      * @returns {Boolean}
@@ -16,7 +20,7 @@ var Util = {
     },
 
     /**
-     * 判断是否为数字
+     * judge is a number
      * 
      * @param {any} arg 
      * @returns {Boolean}
@@ -26,7 +30,7 @@ var Util = {
     },
 
     /**
-     * 判断是否为数组
+     * judge is a array
      * 
      * @param {any} arg 
      * @returns {Boolean}
@@ -36,7 +40,7 @@ var Util = {
     },
 
     /**
-     * 判断是否为对象
+     * judge is a object
      * 
      * @param {any} arg 
      * @returns {Boolean}
@@ -46,7 +50,7 @@ var Util = {
     },
 
     /**
-     * 判断是否为函数
+     * judge is a function
      * 
      * @param {any} arg 
      * @returns {Boolean}
@@ -56,13 +60,45 @@ var Util = {
     },
 
     /**
-     * 判断是否为null
+     * judge is null
      * 
      * @param {any} arg 
      * @returns {Boolean}
      */
     isNull: function isNull(arg) {
         return arg === null;
+    },
+
+    /**
+     * test is arg not a empty string,
+     * when arg is null or undefined, return false
+     * 
+     * @param {any} arg 
+     * @returns {Boolean}
+     */
+    isNotEmptyString: function isNotEmptyString(arg) {
+        if (Util.isString(arg) && arg.trim().length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+
+    /**
+     * concat all parameters to string,
+     * when some parameter is null or undefined, not concat them
+     * 
+     * @param {any} arg 
+     * @returns {String}
+     */
+    concatString: function concatString() {
+        var args = [].concat(Array.prototype.slice.call(arguments));
+        return args.reduce(function (prev, curr) {
+            if (curr) {
+                return prev + curr;
+            }
+            return prev;
+        }, '');
     }
 };
 
@@ -116,42 +152,49 @@ var Url = function () {
         value: function parse(url) {
             if (Util.isString(url)) {
                 var urlObj = {
-                    protocol: null,
-                    host: null,
-                    path: null,
-                    query: null,
-                    hash: null
-                };
-                var protocolRegExp = /^(\w+):\/\//;
-                // parse url's protocol part
+                    protocol: '',
+                    host: '',
+                    path: '',
+                    query: '',
+                    hash: ''
+
+                    // parse url's protocol part
+                };var protocolRegExp = /^(\w+):\/\//;
                 var protocol = url.match(protocolRegExp);
                 if (protocol) {
                     urlObj.protocol = protocol[1];
                     // remove protocol part
                     url = url.slice(protocol[0].length);
                 }
+
                 // parse url's host part
-                if (url.split('/')[0].length > 0) {
-                    var host = url.split('/')[0];
-                    urlObj.host = host;
+                var hostRegExp = /^[a-zA-Z0-9][-a-zA-Z0-9_]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9_]{0,62})*(:\d{0,5})?/;
+                var host = url.match(hostRegExp);
+                if (host) {
+                    urlObj.host = host[0];
                     // remove host part
-                    url = url.slice(host.length);
+                    url = url.slice(urlObj.host.length);
                 }
+
                 // parse url's hash part (this parse order can make parse path easier)
-                var hashIndex = url.indexOf('#');
-                if (hashIndex !== -1) {
-                    urlObj.hash = url.slice(hashIndex);
+                var hashRegExp = /#.*$/;
+                var hash = url.match(hashRegExp);
+                if (hash) {
+                    urlObj.hash = hash[0];
                     // remove hash part
-                    url = url.slice(0, hashIndex);
+                    url = url.slice(0, url.length - urlObj.hash.length);
                 }
+
                 // parse url's path part
-                var queryIndex = url.indexOf('?');
-                if (queryIndex !== -1) {
-                    urlObj.path = url.slice(0, queryIndex);
-                    urlObj.query = url.slice(queryIndex + 1);
+                var queryRegExp = /\?(.*)$/;
+                var query = url.match(queryRegExp);
+                if (query) {
+                    urlObj.query = query[1];
+                    urlObj.path = url.slice(0, query.index);
                 } else {
                     urlObj.path = url;
                 }
+
                 return urlObj;
             } else {
                 throw new Error('parameter url must be a string');
@@ -172,12 +215,11 @@ var Url = function () {
         value: function format(urlObj) {
             if (Util.isObject(urlObj)) {
                 var urlPartArray = [];
-                urlPartArray.push(urlObj.protocol ? urlObj.protocol + '://' : '');
-                urlPartArray.push(urlObj.host ? urlObj.host : '');
-                urlPartArray.push(urlObj.port ? ':' + urlObj.port : '');
-                urlPartArray.push(urlObj.path ? urlObj.path : '');
-                urlPartArray.push(urlObj.query ? '?' + urlObj.query : '');
-                urlPartArray.push(urlObj.hash ? urlObj.hash : '');
+                urlPartArray.push(Util.isNotEmptyString(urlObj.protocol) ? urlObj.protocol + '://' : '');
+                urlPartArray.push(Util.isNotEmptyString(urlObj.host) ? urlObj.host : '');
+                urlPartArray.push(Util.isNotEmptyString(urlObj.path) ? urlObj.path : '');
+                urlPartArray.push(Util.isNotEmptyString(urlObj.query) ? '?' + urlObj.query : '');
+                urlPartArray.push(Util.isNotEmptyString(urlObj.hash) ? urlObj.hash : '');
                 return urlPartArray.join('');
             } else {
                 throw new Error('parameter url_obj must be a object');
@@ -201,10 +243,8 @@ var UrlTemplater = function () {
 
         if (Util.isString(url)) {
             this.options = Object.assign({}, UrlTemplater.DEFAULT_OPTIONS, options);
-            // set default UrlParser
-            this.UrlParser = this.options.UrlParser || Url;
             this.template = url;
-            this.templateObj = this.UrlParser.parse(url);
+            this.templateObj = Url.parse(url);
         } else {
             throw new Error('parameter url must be a string!');
         }
@@ -230,7 +270,8 @@ var UrlTemplater = function () {
                 _ref$query = _ref.query,
                 query = _ref$query === undefined ? {} : _ref$query;
 
-            return this.getParamsPart(params) + this.getQueryPart(query);
+            var queryString = this.getQueryPart(query);
+            return this.getFullUrl(params, queryString);
         }
 
         /**
@@ -246,7 +287,7 @@ var UrlTemplater = function () {
         value: function getQueryPart(queryObj) {
 
             /**
-             * add a new elem into an array
+             * add a new element into an array
              * 
              * @param {Array} array 
              * @param {*} elem 
@@ -276,7 +317,11 @@ var UrlTemplater = function () {
                     // value is an array, combine keys with []
                     var entityList = [];
                     for (var i = 0; i < value.length; i++) {
-                        entityList = addArrayElem(entityList, transformToEntity('' + key + transformRule.arrCombineStart + i + transformRule.arrCombineEnd, value[i]));
+
+                        var newKey = '' + key + transformRule.arrCombineStart + i + transformRule.arrCombineEnd;
+                        var newValue = value[i];
+
+                        entityList = addArrayElem(entityList, transformToEntity(newKey, newValue));
                     }
                     return entityList;
                 } else if (Util.isObject(value)) {
@@ -284,18 +329,22 @@ var UrlTemplater = function () {
                     // value is a object, combine keys with '.'
                     var _entityList = [];
                     for (var nextKey in value) {
-                        _entityList = addArrayElem(_entityList, transformToEntity('' + key + transformRule.objCombine + nextKey, value[nextKey]));
+
+                        var _newKey = '' + key + transformRule.objCombine + nextKey;
+                        var _newValue = value[nextKey];
+
+                        _entityList = addArrayElem(_entityList, transformToEntity(_newKey, _newValue));
                     }
                     return _entityList;
                 } else if (Util.isFunction(value)) {
 
                     // value is a function, use value's return result as key's value
+                    console.log(value()); // eslint-disable-line
                     return transformToEntity(key, value());
                 } else {
 
                     // value is other type, use value's toString function's return result as key's value
-                    value = encodeURI(value.toString());
-                    return key + '=' + value;
+                    return Util.concatString(key, '=', value);
                 }
             };
 
@@ -304,35 +353,43 @@ var UrlTemplater = function () {
                 arrCombineStart: this.options.arrCombineStart,
                 arrCombineEnd: this.options.arrCombineEnd
             },
-                queryStart = this.template.endsWith('?') ? '' : '?',
                 queryList = [],
                 andSymbol = '&';
 
             for (var key in queryObj) {
-                var value = queryObj[key];
-                var transformResult = transformToEntity(key, value);
+                var value = queryObj[key],
+                    transformResult = transformToEntity(key, value);
                 queryList = addArrayElem(queryList, transformResult);
             }
 
-            var queryResult = queryList.join(andSymbol);
-            return queryResult.length > 0 ? queryStart + queryResult : queryResult;
+            return queryList.join(andSymbol);
         }
 
         /**
-         * resolve url parameters
+         * resolve url parameters and concat queryString, finally return a whole url
          * 
          * @param {Object} paramsObj 
-         * @returns {String}
-         * @memberof UrlTemplate
+         * @param {string} [queryString=''] 
+         * @returns 
+         * @memberof UrlTemplater
          */
 
     }, {
-        key: 'getParamsPart',
-        value: function getParamsPart(paramsObj) {
+        key: 'getFullUrl',
+        value: function getFullUrl(paramsObj) {
+            var queryString = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
 
-            var paramsRule = this.options.paramsRule;
-            var urlObj = Object.assign({}, this.templateObj);
 
+            var paramsRule = this.options.paramsRule,
+                urlObj = Object.assign({}, this.templateObj),
+                queryConcatSymbol = '';
+
+            if (urlObj.query && urlObj.query.length > 0 && queryString.length > 0) {
+                queryConcatSymbol = '&';
+            }
+
+            // concat static query string and dynamic query string 
+            urlObj.query = Util.concatString(urlObj.query, queryConcatSymbol, queryString);
             // replace url parameters in path string, the no-value parameter will be replace with empty string
             urlObj.path = urlObj.path.replace(paramsRule, function (substring, key) {
                 if (Util.isFunction(paramsObj[key])) {
@@ -341,7 +398,7 @@ var UrlTemplater = function () {
                 return paramsObj[key] || '';
             });
 
-            return this.UrlParser.format(urlObj);
+            return Url.format(urlObj);
         }
     }]);
     return UrlTemplater;
@@ -351,14 +408,13 @@ UrlTemplater.DEFAULT_OPTIONS = {
     objCombine: '.',
     arrCombineStart: '[',
     arrCombineEnd: ']',
-    paramsRule: /:(\w+)/g,
-    UrlParser: null
+    paramsRule: /:(\w+)/g
 };
 
 UrlTemplater.version = '{{version}}';
 
-describe('Url static methods test', function () {
-    it('parse method test', function () {
+describe('Url\'s static methods test', function () {
+    it('parse - basic test', function () {
         var url_obj = Url.parse('http://localhost:8080/api/id/:id?type=json#a');
         assert.deepEqual(url_obj, {
             protocol: 'http',
@@ -369,7 +425,62 @@ describe('Url static methods test', function () {
         });
     });
 
-    it('format method test', function () {
+    it('parse - no protocal test', function () {
+        var url_obj = Url.parse('localhost:8080/api/id/:id?type=json#a');
+        assert.deepEqual(url_obj, {
+            protocol: '',
+            host: 'localhost:8080',
+            hash: '#a',
+            path: '/api/id/:id',
+            query: 'type=json'
+        });
+    });
+
+    it('parse - no host test', function () {
+        var url_obj = Url.parse('/api/id/:id?type=json#a');
+        assert.deepEqual(url_obj, {
+            protocol: '',
+            host: '',
+            hash: '#a',
+            path: '/api/id/:id',
+            query: 'type=json'
+        });
+    });
+
+    it('parse - no path test', function () {
+        var url_obj = Url.parse('http://localhost:8080?type=json#a');
+        assert.deepEqual(url_obj, {
+            protocol: 'http',
+            host: 'localhost:8080',
+            hash: '#a',
+            path: '',
+            query: 'type=json'
+        });
+    });
+
+    it('parse - no query test', function () {
+        var url_obj = Url.parse('http://localhost:8080/api/id/:id?#a');
+        assert.deepEqual(url_obj, {
+            protocol: 'http',
+            host: 'localhost:8080',
+            hash: '#a',
+            path: '/api/id/:id',
+            query: ''
+        });
+    });
+
+    it('parse - no hash test', function () {
+        var url_obj = Url.parse('http://localhost:8080/api/id/:id?type=json');
+        assert.deepEqual(url_obj, {
+            protocol: 'http',
+            host: 'localhost:8080',
+            hash: '',
+            path: '/api/id/:id',
+            query: 'type=json'
+        });
+    });
+
+    it('format - basic test', function () {
         var url = Url.format({
             protocol: 'http',
             host: 'localhost:8080',
@@ -377,11 +488,66 @@ describe('Url static methods test', function () {
             path: '/api/id/:id',
             query: 'type=json'
         });
-        assert.equal(url, 'http://localhost:8080/api/id/:id?type=json#a');
+        assert(url === 'http://localhost:8080/api/id/:id?type=json#a');
+    });
+
+    it('format - no protocal test', function () {
+        var url = Url.format({
+            protocol: '',
+            host: 'localhost:8080',
+            hash: '#a',
+            path: '/api/id/:id',
+            query: 'type=json'
+        });
+        assert(url === 'localhost:8080/api/id/:id?type=json#a');
+    });
+
+    it('format - no host test', function () {
+        var url = Url.format({
+            protocol: '',
+            host: '',
+            hash: '#a',
+            path: '/api/id/:id',
+            query: 'type=json'
+        });
+        assert(url === '/api/id/:id?type=json#a');
+    });
+
+    it('format - no path test', function () {
+        var url = Url.format({
+            protocol: 'http',
+            host: 'localhost:8080',
+            hash: '#a',
+            path: '',
+            query: 'type=json'
+        });
+        assert(url === 'http://localhost:8080?type=json#a');
+    });
+
+    it('format - no query test', function () {
+        var url = Url.format({
+            protocol: 'http',
+            host: 'localhost:8080',
+            hash: '#a',
+            path: '/api/id/:id',
+            query: ''
+        });
+        assert(url === 'http://localhost:8080/api/id/:id#a');
+    });
+
+    it('format - no hash test', function () {
+        var url = Url.format({
+            protocol: 'http',
+            host: 'localhost:8080',
+            hash: '',
+            path: '/api/id/:id',
+            query: 'type=json'
+        });
+        assert(url === 'http://localhost:8080/api/id/:id?type=json');
     });
 });
 
-describe('UrlTemplater test', function () {
+describe('UrlTemplater\'s test', function () {
 
     it('resolve simple params', function () {
         var url = new UrlTemplater('http://localhost:8080/api/name/:name').resolve({
@@ -389,19 +555,19 @@ describe('UrlTemplater test', function () {
                 name: 'url-templater'
             }
         });
-        assert.equal(url, 'http://localhost:8080/api/name/url-templater');
+        assert(url === 'http://localhost:8080/api/name/url-templater');
     });
 
     it('resolve function params', function () {
         var url = new UrlTemplater('http://localhost:8080/api/time/:time').resolve({
             params: {
                 time: function time() {
-                    return new Date();
+                    return new Date().getTime();
                 }
             }
         });
-        var urlPattern = /^http\/\/localhost:8080\/api\/time\/\d+$/;
-        assert(urlPattern.compile(url));
+        var urlPattern = /^http:\/\/localhost:8080\/api\/time\/\d+$/;
+        assert.ok(urlPattern.test(url));
     });
 
     it('resolve simple query', function () {
@@ -410,7 +576,7 @@ describe('UrlTemplater test', function () {
                 json: 'true'
             }
         });
-        assert.equal(url, 'http://localhost:8080/api/query?json=true');
+        assert(url === 'http://localhost:8080/api/query?json=true');
     });
 
     it('resolve array query', function () {
@@ -419,7 +585,7 @@ describe('UrlTemplater test', function () {
                 array: ['a', 'b', 'c']
             }
         });
-        assert.equal(url, 'http://localhost:8080/api/query?array[0]=a&array[1]=b&array[2]=c');
+        assert(url === 'http://localhost:8080/api/query?array[0]=a&array[1]=b&array[2]=c');
     });
 
     it('resolve object query', function () {
@@ -432,19 +598,19 @@ describe('UrlTemplater test', function () {
                 }
             }
         });
-        assert.equal(url, 'http://localhost:8080/api/query?obj.attr1=value1&obj.attr2=value2&obj.attr3=value3');
+        assert(url === 'http://localhost:8080/api/query?obj.attr1=value1&obj.attr2=value2&obj.attr3=value3');
     });
 
     it('resolve function query', function () {
         var url = new UrlTemplater('http://localhost:8080/api/query').resolve({
             query: {
                 time: function time() {
-                    return new Date();
+                    return new Date().getTime();
                 }
             }
         });
-        var urlPattern = /^http\/\/localhost:8080\/api\/query\?time=\d+$/;
-        assert(urlPattern.compile(url));
+        var urlPattern = /^http:\/\/localhost:8080\/api\/query\?time=\d+$/;
+        assert.ok(urlPattern.test(url));
     });
 
     it('resolve complex query and params', function () {
@@ -469,8 +635,8 @@ describe('UrlTemplater test', function () {
             }
         });
 
-        var resultUrl = 'http://localhost:8080/api/id/123456/type/json/query?projectInfo.name=url-templater&projectInfo.teamMember[0]=programmer&projectInfo.teamMember[1]=tester&projectInfo.birthday=2017-8-10&projectInfo.modules.Url=parse%20and%20format%20effect&projectInfo.modules.UrlTemplater=url%20template%20class';
+        var resultUrl = 'http://localhost:8080/api/id/123456/type/json/query?projectInfo.name=url-templater&projectInfo.teamMember[0]=programmer&projectInfo.teamMember[1]=tester&projectInfo.birthday=2017-8-10&projectInfo.modules.Url=parse and format effect&projectInfo.modules.UrlTemplater=url template class';
 
-        assert.equal(url, resultUrl);
+        assert(url === resultUrl);
     });
 });

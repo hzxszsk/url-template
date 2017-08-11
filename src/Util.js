@@ -1,7 +1,10 @@
 'use strict'
+/**
+ * provide some function helpers
+ */
 const Util = {
     /**
-     * 判断是否为字符串
+     * judge is a string
      * 
      * @param {any} arg 
      * @returns {Boolean}
@@ -10,7 +13,7 @@ const Util = {
         return typeof arg === 'string'
     },
     /**
-     * 判断是否为数字
+     * judge is a number
      * 
      * @param {any} arg 
      * @returns {Boolean}
@@ -19,7 +22,7 @@ const Util = {
         return typeof arg === 'number'
     },
     /**
-     * 判断是否为数组
+     * judge is a array
      * 
      * @param {any} arg 
      * @returns {Boolean}
@@ -28,7 +31,7 @@ const Util = {
         return Array.isArray(arg)
     },
     /**
-     * 判断是否为对象
+     * judge is a object
      * 
      * @param {any} arg 
      * @returns {Boolean}
@@ -37,7 +40,7 @@ const Util = {
         return Object.prototype.toString.call(arg) === '[object Object]'
     },
     /**
-     * 判断是否为函数
+     * judge is a function
      * 
      * @param {any} arg 
      * @returns {Boolean}
@@ -46,13 +49,43 @@ const Util = {
         return typeof arg === 'function'
     },
     /**
-     * 判断是否为null
+     * judge is null
      * 
      * @param {any} arg 
      * @returns {Boolean}
      */
     isNull (arg) {
         return arg === null
+    },
+    /**
+     * test is arg not a empty string,
+     * when arg is null or undefined, return false
+     * 
+     * @param {any} arg 
+     * @returns {Boolean}
+     */
+    isNotEmptyString (arg) {
+        if (Util.isString(arg) && arg.trim().length > 0) {
+            return true
+        } else {
+            return false
+        }
+    },
+    /**
+     * concat all parameters to string,
+     * when some parameter is null or undefined, not concat them
+     * 
+     * @param {any} arg 
+     * @returns {String}
+     */
+    concatString () {
+        const args = [...arguments]
+        return args.reduce((prev, curr) => {
+            if (curr) {
+                return prev + curr
+            }
+            return prev
+        }, '')
     }
 }
 

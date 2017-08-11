@@ -14,10 +14,8 @@ export default class UrlTemplater {
     constructor(url, options) {
         if (Util.isString(url)) {
             this.options = Object.assign({}, UrlTemplater.DEFAULT_OPTIONS, options)
-            // set default UrlParser
-            this.UrlParser = this.options.UrlParser || Url
             this.template = url
-            this.templateObj = this.UrlParser.parse(url)
+            this.templateObj = Url.parse(url)
         } else {
             throw new Error('parameter url must be a string!')
         }
@@ -34,10 +32,11 @@ export default class UrlTemplater {
      * @memberof UrlTemplate
      */
     resolve({
-        params = {}, 
+        params = {},
         query = {}
     }) {
-        return this.getParamsPart(params) + this.getQueryPart(query)
+        let queryString = this.getQueryPart(query)
+        return this.getFullUrl(params, queryString)
     }
 
     /**
@@ -50,7 +49,7 @@ export default class UrlTemplater {
     getQueryPart(queryObj) {
 
         /**
-         * add a new elem into an array
+         * add a new element into an array
          * 
          * @param {Array} array 
          * @param {*} elem 
@@ -80,7 +79,11 @@ export default class UrlTemplater {
                 // value is an array, combine keys with []
                 let entityList = []
                 for (let i = 0; i < value.length; i++) {
-                    entityList = addArrayElem(entityList, transformToEntity(`${key}${transformRule.arrCombineStart}${i}${transformRule.arrCombineEnd}`, value[i]))
+
+                    let newKey = `${key}${transformRule.arrCombineStart}${i}${transformRule.arrCombineEnd}`
+                    let newValue = value[i]
+
+                    entityList = addArrayElem(entityList, transformToEntity(newKey, newValue))
                 }
                 return entityList
 
@@ -89,7 +92,11 @@ export default class UrlTemplater {
                 // value is a object, combine keys with '.'
                 let entityList = []
                 for (let nextKey in value) {
-                    entityList = addArrayElem(entityList, transformToEntity(`${key}${transformRule.objCombine}${nextKey}`, value[nextKey]))
+
+                    let newKey = `${key}${transformRule.objCombine}${nextKey}`
+                    let newValue = value[nextKey]
+
+                    entityList = addArrayElem(entityList, transformToEntity(newKey, newValue))
                 }
                 return entityList
 
@@ -101,10 +108,9 @@ export default class UrlTemplater {
             } else {
 
                 // value is other type, use value's toString function's return result as key's value
-                value = encodeURI(value.toString())
-                return `${key}=${value}`
+                return Util.concatString(key, '=', value)
 
-            } 
+            }
         }
 
         let transformRule = {
@@ -112,33 +118,38 @@ export default class UrlTemplater {
                 arrCombineStart: this.options.arrCombineStart,
                 arrCombineEnd: this.options.arrCombineEnd,
             },
-            queryStart = this.template.endsWith('?') ? '' : '?',
             queryList = [],
             andSymbol = '&'
 
         for (let key in queryObj) {
-            let value = queryObj[key]
-            let transformResult = transformToEntity(key, value)
+            let value = queryObj[key],
+                transformResult = transformToEntity(key, value)
             queryList = addArrayElem(queryList, transformResult)
         }
 
-        let queryResult = queryList.join(andSymbol)
-        return queryResult.length > 0 ? queryStart + queryResult : queryResult
-
+        return queryList.join(andSymbol)
     }
 
     /**
-     * resolve url parameters
+     * resolve url parameters and concat queryString, finally return a whole url
      * 
      * @param {Object} paramsObj 
-     * @returns {String}
-     * @memberof UrlTemplate
+     * @param {string} [queryString=''] 
+     * @returns 
+     * @memberof UrlTemplater
      */
-    getParamsPart(paramsObj) {
+    getFullUrl(paramsObj, queryString = '') {
 
-        let paramsRule = this.options.paramsRule
-        let urlObj = Object.assign({}, this.templateObj)
+        let paramsRule = this.options.paramsRule,
+            urlObj = Object.assign({}, this.templateObj),
+            queryConcatSymbol = ''
+        
+        if (urlObj.query && urlObj.query.length > 0 && queryString.length > 0) {
+            queryConcatSymbol = '&'
+        }
 
+        // concat static query string and dynamic query string 
+        urlObj.query = Util.concatString(urlObj.query, queryConcatSymbol, queryString)
         // replace url parameters in path string, the no-value parameter will be replace with empty string
         urlObj.path = urlObj.path.replace(paramsRule, (substring, key) => {
             if (Util.isFunction(paramsObj[key])) {
@@ -147,7 +158,7 @@ export default class UrlTemplater {
             return paramsObj[key] || ''
         })
 
-        return this.UrlParser.format(urlObj)
+        return Url.format(urlObj)
     }
 }
 
@@ -155,8 +166,7 @@ UrlTemplater.DEFAULT_OPTIONS = {
     objCombine: '.',
     arrCombineStart: '[',
     arrCombineEnd: ']',
-    paramsRule: /:(\w+)/g,
-    UrlParser: null
+    paramsRule: /:(\w+)/g
 }
 
 UrlTemplater.version = '{{version}}'
