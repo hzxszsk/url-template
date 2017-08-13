@@ -15,7 +15,7 @@ $ npm install url-templater --save
 import the UrlTemplater class, and new a UrlTemplater instance by passing a string parameter, then use `resolve` method to get the rendered url string.
 
 **example:**
-```
+``` js
 const UrlTemplater = require('url-templater')
 
 const url = new UrlTemplater('http://localhost:8080/api/name/:name')
@@ -38,7 +38,7 @@ The `params` property resolve the path parameter( like `:name`), and the `query`
 
 if param property's value is a function, url-templater will use the funciton return value as the property value.
 
-```
+``` js
 new UrlTemplater('http://localhost:8080/api/name/:name').resolve({
     params: {
         name: function () {
@@ -57,7 +57,7 @@ new UrlTemplater('http://localhost:8080/api/name/:name').resolve({
 - *object* when query's property is a object, it will combined current key with previous key like `prevKey.currKey`
 
 **example:**
-```
+``` js
 new UrlTemplater('http://localhost:8080/api/query').resolve({
     query: {
         projectInfo: {
@@ -82,7 +82,7 @@ new UrlTemplater('http://localhost:8080/api/query').resolve({
 if you want to use you own habits to replace the default configuration (such as the character that used to combine object's key), you can add a options object parameter in UrlTemplater's constructor.
 
 **example:**
-```
+``` js
 const templater = new UrlTemplater('http://localhost:8080/api/name/{{name}}/query', {
     // the character combine with object's key
     objCombine: '#',
