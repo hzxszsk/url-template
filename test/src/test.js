@@ -230,4 +230,24 @@ describe('UrlTemplater\'s test', function () {
 
         assert(url === resultUrl)
     })
+
+    it('custom setting test', function () {
+        const templater = new UrlTemplater('http://localhost:8080/api/name/{{name}}/query', {
+            objCombine: '#',
+            arrCombine: ['{', '}'],
+            paramsRule: /{{(\w+)}}/
+        })
+        const url = templater.resolve({
+            params: {
+                name: 'url-templater'
+            },
+            query: {
+                array: ['a', 'b', 'c'],
+                modules: {
+                    Url: 'parse and format effect'
+                }
+            }
+        })
+        assert(url === 'http://localhost:8080/api/name/url-templater/query?array{0}=a&array{1}=b&array{2}=c&modules#Url=parse and format effect')
+    })
 })

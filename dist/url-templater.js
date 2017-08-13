@@ -229,7 +229,14 @@ var Url = function () {
     return Url;
 }();
 
-var UrlTemplater = function () {
+/**
+ * url-templater main class
+ * 
+ * @export
+ * @class UrlTemplater
+ */
+
+var UrlTemplater$1 = function () {
 
     /**
      * create a url-template object
@@ -318,7 +325,7 @@ var UrlTemplater = function () {
                     var entityList = [];
                     for (var i = 0; i < value.length; i++) {
 
-                        var newKey = '' + key + transformRule.arrCombineStart + i + transformRule.arrCombineEnd;
+                        var newKey = '' + key + transformRule.arrCombine[0] + i + transformRule.arrCombine[1];
                         var newValue = value[i];
 
                         entityList = addArrayElem(entityList, transformToEntity(newKey, newValue));
@@ -339,7 +346,6 @@ var UrlTemplater = function () {
                 } else if (Util.isFunction(value)) {
 
                     // value is a function, use value's return result as key's value
-                    console.log(value()); // eslint-disable-line
                     return transformToEntity(key, value());
                 } else {
 
@@ -350,8 +356,7 @@ var UrlTemplater = function () {
 
             var transformRule = {
                 objCombine: this.options.objCombine,
-                arrCombineStart: this.options.arrCombineStart,
-                arrCombineEnd: this.options.arrCombineEnd
+                arrCombine: this.options.arrCombine
             },
                 queryList = [],
                 andSymbol = '&';
@@ -380,7 +385,7 @@ var UrlTemplater = function () {
             var queryString = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
 
 
-            var paramsRule = this.options.paramsRule,
+            var paramsRule = new RegExp(this.options.paramsRule, 'g'),
                 urlObj = Object.assign({}, this.templateObj),
                 queryConcatSymbol = '';
 
@@ -392,10 +397,11 @@ var UrlTemplater = function () {
             urlObj.query = Util.concatString(urlObj.query, queryConcatSymbol, queryString);
             // replace url parameters in path string, the no-value parameter will be replace with empty string
             urlObj.path = urlObj.path.replace(paramsRule, function (substring, key) {
-                if (Util.isFunction(paramsObj[key])) {
-                    return paramsObj[key]() || '';
+                var value = paramsObj[key];
+                while (Util.isFunction(value)) {
+                    value = value();
                 }
-                return paramsObj[key] || '';
+                return value || '';
             });
 
             return Url.format(urlObj);
@@ -404,20 +410,14 @@ var UrlTemplater = function () {
     return UrlTemplater;
 }();
 
-UrlTemplater.DEFAULT_OPTIONS = {
+UrlTemplater$1.DEFAULT_OPTIONS = {
     objCombine: '.',
-    arrCombineStart: '[',
-    arrCombineEnd: ']',
+    arrCombine: ['[', ']'],
     paramsRule: /:(\w+)/g
 };
 
-UrlTemplater.version = '1.0.0';
+UrlTemplater$1.version = '1.0.0';
 
-var index = {
-    UrlTemplater: UrlTemplater,
-    Url: Url
-};
-
-return index;
+return UrlTemplater$1;
 
 })));

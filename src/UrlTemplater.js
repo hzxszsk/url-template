@@ -2,6 +2,12 @@
 import Util from './Util'
 import Url from './Url'
 
+/**
+ * url-templater main class
+ * 
+ * @export
+ * @class UrlTemplater
+ */
 export default class UrlTemplater {
 
     /**
@@ -80,7 +86,7 @@ export default class UrlTemplater {
                 let entityList = []
                 for (let i = 0; i < value.length; i++) {
 
-                    let newKey = `${key}${transformRule.arrCombineStart}${i}${transformRule.arrCombineEnd}`
+                    let newKey = `${key}${transformRule.arrCombine[0]}${i}${transformRule.arrCombine[1]}`
                     let newValue = value[i]
 
                     entityList = addArrayElem(entityList, transformToEntity(newKey, newValue))
@@ -115,8 +121,7 @@ export default class UrlTemplater {
 
         let transformRule = {
                 objCombine: this.options.objCombine,
-                arrCombineStart: this.options.arrCombineStart,
-                arrCombineEnd: this.options.arrCombineEnd,
+                arrCombine: this.options.arrCombine
             },
             queryList = [],
             andSymbol = '&'
@@ -140,7 +145,7 @@ export default class UrlTemplater {
      */
     getFullUrl(paramsObj, queryString = '') {
 
-        let paramsRule = this.options.paramsRule,
+        let paramsRule = new RegExp(this.options.paramsRule, 'g'),
             urlObj = Object.assign({}, this.templateObj),
             queryConcatSymbol = ''
         
@@ -152,10 +157,11 @@ export default class UrlTemplater {
         urlObj.query = Util.concatString(urlObj.query, queryConcatSymbol, queryString)
         // replace url parameters in path string, the no-value parameter will be replace with empty string
         urlObj.path = urlObj.path.replace(paramsRule, (substring, key) => {
-            if (Util.isFunction(paramsObj[key])) {
-                return paramsObj[key]() || ''
+            let value = paramsObj[key]
+            while (Util.isFunction(value)) {
+                value = value()
             }
-            return paramsObj[key] || ''
+            return value || ''
         })
 
         return Url.format(urlObj)
@@ -164,8 +170,7 @@ export default class UrlTemplater {
 
 UrlTemplater.DEFAULT_OPTIONS = {
     objCombine: '.',
-    arrCombineStart: '[',
-    arrCombineEnd: ']',
+    arrCombine: ['[', ']'],
     paramsRule: /:(\w+)/g
 }
 

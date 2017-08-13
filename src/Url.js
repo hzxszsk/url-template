@@ -1,5 +1,6 @@
 'use strict'
 import Util from './Util'
+
 /**
  * a simple tool lib look like node's url module
  * 

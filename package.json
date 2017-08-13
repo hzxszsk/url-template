@@ -1,8 +1,10 @@
 {
   "name": "url-templater",
   "version": "1.0.0",
-  "description": "use a url template, and resolve your different data",
+  "description": "create url that you want to use with different data by UrlTemplater",
   "main": "index.js",
+  "module": "src/index.js",
+  "jsnext:main": "src/index.js",
   "scripts": {
     "dev": "rollup -c --environment ENV:development",
     "build": "rollup -c --environment ENV:production",
@@ -13,7 +15,7 @@
   "homepage": "https://github.com/hzxszsk/url-templater",
   "repository": {
     "type": "git",
-    "url": "git://github.com/hzxszsk/url-templater.git"
+    "url": "git+https://github.com/hzxszsk/url-templater.git"
   },
   "author": {
     "name": "KainStar",
