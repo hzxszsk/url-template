@@ -1,5 +1,7 @@
 # url-template
 
+![Build Status](https://travis-ci.org/hzxszsk/url-templater.svg?branch=master)
+
 Create url that you want to use with different data.
 
 ## Installation

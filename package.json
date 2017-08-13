@@ -2,6 +2,9 @@
   "name": "url-templater",
   "version": "1.0.0",
   "description": "create url that you want to use with different data by UrlTemplater",
+  "keywords": [
+    "url", "template", "url-template", "url-templater"
+  ],
   "main": "index.js",
   "module": "src/index.js",
   "jsnext:main": "src/index.js",
@@ -19,7 +22,7 @@
   },
   "author": {
     "name": "KainStar",
-    "email": "hzxszsk@gmail.com"
+    "email": "46145042@qq.com"
   },
   "license": "MIT",
   "devDependencies": {
